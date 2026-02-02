@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Be My Valentine?</title>
+  <style>
+    :root{
+      --bg1:#ffdde1;
+      --bg2:#ee9ca7;
+      --card:#ffffffcc;
+      --text:#2b2b2b;
+      --yes:#22c55e;
+      --no:#ef4444;
+    }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at 20% 20%, var(--bg1), var(--bg2));
+      color:var(--text);
+      overflow:hidden;
+    }
+    .card{
+      width:min(520px, 92vw);
+      background:var(--card);
+      backdrop-filter: blur(10px);
+      border:1px solid rgba(255,255,255,.4);
+      border-radius:24px;
+      padding:28px 22px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.15);
+      text-align:center;
+      position:relative;
+    }
+    h1{
+      margin:0 0 8px;
+      font-size: clamp(26px, 4vw, 38px);
+      letter-spacing:.2px;
+    }
+    p{
+      margin:0 0 18px;
+      opacity:.9;
+    }
+    .stage{
+      position:relative;
+      width:100%;
+      height:260px;
+      border-radius:18px;
+      background: rgba(255,255,255,.45);
+      border:1px dashed rgba(0,0,0,.08);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .btn{
+      border:0;
+      padding:14px 20px;
+      border-radius:14px;
+      font-size:18px;
+      font-weight:650;
+      cursor:pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,.12);
+      transition: transform .12s ease, filter .12s ease;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active{ transform: scale(.98); }
+    .yes{
+      background:var(--yes);
+      color:white;
+      margin-right:14px;
+    }
+    .no{
+      background:var(--no);
+      color:white;
+      position:absolute; /* so it can move */
+      left:60%;
+      top:58%;
+      transform: translate(-50%, -50%);
+    }
+
+    .footer{
+      margin-top:14px;
+      font-size:12px;
+      opacity:.7;
+    }
+
+    /* popup */
+    .modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      place-items:center;
+      background: rgba(0,0,0,.35);
+      padding:18px;
+    }
+    .modal.show{ display:grid; }
+    .modal-card{
+      width:min(520px, 92vw);
+      background:white;
+      border-radius:22px;
+      padding:22px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.25);
+      text-align:center;
+    }
+    .modal-card h2{ margin:0 0 10px; }
+    .modal-card p{ margin:0 0 16px; }
+    .small{
+      font-size:13px;
+      opacity:.75;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Will you be my Valentine? 💘</h1>
+    <p>Be honest… if you can 😌</p>
+
+    <div class="stage" id="stage">
+      <button class="btn yes" id="yesBtn">Yes 😍</button>
+      <button class="btn no" id="noBtn">No 🙃</button>
+    </div>
+
+    <div class="footer">Made with love (and a little mischief)</div>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <h2>YAYYYYY!! 🥰</h2>
+      <p>You just made my day 💐</p>
+      <p class="small" id="meta"></p>
+      <button class="btn yes" id="closeBtn">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const stage = document.getElementById("stage");
+    const noBtn = document.getElementById("noBtn");
+    const yesBtn = document.getElementById("yesBtn");
+    const modal = document.getElementById("modal");
+    const closeBtn = document.getElementById("closeBtn");
+    const meta = document.getElementById("meta");
+
+    // Put No button somewhere safe at start
+    function placeNoInitial(){
+      const s = stage.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+      const x = Math.max(12, s.width * 0.68);
+      const y = Math.max(12, s.height * 0.6);
+      noBtn.style.left = x + "px";
+      noBtn.style.top = y + "px";
+    }
+
+    // Move the "No" button to a random position inside stage
+    function moveNo(){
+      const s = stage.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+
+      // padding so it doesn't go out of bounds
+      const pad = 12;
+      const maxX = s.width - b.width - pad;
+      const maxY = s.height - b.height - pad;
+
+      // random spot
+      const x = Math.random() * (maxX - pad) + pad;
+      const y = Math.random() * (maxY - pad) + pad;
+
+      noBtn.style.left = x + "px";
+      noBtn.style.top = y + "px";
+    }
+
+    // Desktop: run away when mouse gets close (hover)
+    noBtn.addEventListener("mouseenter", moveNo);
+    // Mobile: run away when they try to tap it
+    noBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      moveNo();
+    }, { passive:false });
+
+    // Make it extra annoying (optional): also move when mouse moves near it
+    stage.addEventListener("mousemove", (e) => {
+      const b = noBtn.getBoundingClientRect();
+      const dx = e.clientX - (b.left + b.width/2);
+      const dy = e.clientY - (b.top + b.height/2);
+      const dist = Math.hypot(dx, dy);
+      if(dist < 90) moveNo();
+    });
+
+    yesBtn.addEventListener("click", () => {
+      modal.classList.add("show");
+      const now = new Date();
+      meta.textContent = `Timestamp: ${now.toLocaleString()}`;
+    });
+
+    closeBtn.addEventListener("click", () => modal.classList.remove("show"));
+    modal.addEventListener("click", (e) => {
+      if(e.target === modal) modal.classList.remove("show");
+    });
+
+    // Init
+    placeNoInitial();
+    window.addEventListener("resize", placeNoInitial);
+  </script>
+</body>
+</html>
